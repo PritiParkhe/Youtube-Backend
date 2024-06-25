@@ -3,43 +3,18 @@ import connectDB from "./db/index.js";
 import dotenv from "dotenv";
 
 dotenv.config({
-    path: './env'
-})
-
-
+  path: "./.env",
+});
 
 connectDB()
-.then(() => {
+  .then(() => {
     app.listen(process.env.PORT || 8000, () => {
-        console.log(`Server is running at Port: ${process.env.PORT}`);
-    })
-})
-.catch((error) => {
+      console.log(`Server is running at Port: ${process.env.PORT}`);
+    });
+  })
+  .catch((error) => {
     console.log("MONDODB db connection failed !!!", error);
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  });
 
 /*import exprees from "express"
 (async () => {
