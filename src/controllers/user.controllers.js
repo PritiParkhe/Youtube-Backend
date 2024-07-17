@@ -412,6 +412,76 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
   )
 })
 
+const getWatchHistory = asyncHandler(async (req, res) => {
+  try {
+    const watchHistory = await User.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(req.user._id),
+        },
+      },
+      {
+        $unwind: "$watchHistory",
+      },
+      {
+        $sort: {
+          "watchHistory.watchedAt": -1,
+        },
+      },
+      {
+        $lookup: {
+          from: "videos",
+          localField: "watchHistory.video",
+          foreignField: "_id",
+          as: "video",
+        },
+      },
+      {
+        $unwind: "$video",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "video.owner",
+          foreignField: "_id",
+          as: "ownerDetails",
+          pipeline: [
+            {
+              $project: {
+                username: 1,
+                fullName: 1,
+                avatar: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          "video.ownerDetails": {
+            $first: "$ownerDetails",
+          },
+          "video.watchedAt": "$watchHistory.watchedAt",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          video: 1,
+        },
+      },
+    ]);
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, watchHistory, "Watch history fetched successfully")
+      );
+  } catch (error) {
+    throw new ApiError(501, "Fetching watch history failed");
+  }
+});
+
 export {
   registerUser,
   loginUser,
@@ -422,4 +492,5 @@ export {
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
+  getWatchHistory
 };
